@@ -59,7 +59,5 @@ url = "https://cartsentry-ai.vercel.app/proxy"
 subpath = "cartsentry"
 prefix = "apps"
 
-[pos]
-embedded = false
 
 [build]
