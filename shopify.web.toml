@@ -1,0 +1,12 @@
+# Describes how the Shopify CLI runs this app's web process.
+#
+# Rendered from the template's shopify.web.toml.liquid for npm. Without this
+# file the CLI cannot determine the project type, which makes `shopify app
+# function build` hang before it does any work.
+name = "CartSentry AI"
+roles = ["frontend", "backend"]
+webhooks_path = "/webhooks/app/uninstalled"
+
+[commands]
+predev = "npm exec prisma generate"
+dev = "npm exec prisma migrate deploy && npm exec react-router dev"

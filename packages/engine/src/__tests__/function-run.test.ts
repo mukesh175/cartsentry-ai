@@ -9,7 +9,7 @@
  */
 
 // The Function is plain JS with JSDoc types, by design; allowJs resolves it.
-import { cartValidationsGenerateRun } from "../../../../extensions/purchase-rules-validation/src/cart_validations_generate_run.js";
+import { cartValidationsGenerateRun } from "../../../../extensions/purchase-rules-validation/src/index.js";
 
 import { describe, expect, it } from "vitest";
 import { compile, type CompilableRule } from "../compile";

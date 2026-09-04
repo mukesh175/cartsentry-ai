@@ -13,3 +13,7 @@ node_modules
 *.sqlite
 *.sqlite-journal
 .eslintcache
+
+# graphql-codegen output, regenerated on every function build
+extensions/*/src/generated/
+extensions/*/dist/

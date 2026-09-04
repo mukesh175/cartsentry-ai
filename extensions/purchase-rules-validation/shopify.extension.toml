@@ -18,6 +18,11 @@ description = "Enforces the merchant's CartSentry purchase rules in the cart and
   input_query = "src/cart_validations_generate_run.graphql"
   export = "cart-validations-generate-run"
 
+  # No `command`: an absent build command makes the CLI use its native
+  # buildJSFunction path (esbuild + the bundled Javy). Setting it to an npm
+  # script that runs `shopify app function build` recurses forever.
+  #
+  # The entry point MUST be src/index.js — the CLI resolves it by that exact
+  # name and silently treats the function as non-JavaScript otherwise.
   [extensions.build]
-  command = "npm run build"
   path = "dist/function.wasm"

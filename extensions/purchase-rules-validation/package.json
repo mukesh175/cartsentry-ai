@@ -4,13 +4,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "shopify app function build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cartsentry/engine": "*"
   },
   "devDependencies": {
-    "@shopify/shopify_function": "^1.0.0"
+    "@shopify/shopify_function": "~2.0.0"
+  },
+  "codegen": {
+    "overwrite": true,
+    "schema": "schema.graphql",
+    "documents": "src/**/*.graphql",
+    "generates": {
+      "src/generated/api.ts": {
+        "plugins": [
+          "typescript",
+          "typescript-operations"
+        ]
+      }
+    }
   }
 }
