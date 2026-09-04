@@ -85,6 +85,26 @@ Common causes:
 - The store already has 25 validation functions from other apps.
 - The configuration exceeds 60 KB, which the error will say explicitly.
 
+## `shopify app deploy` fails: "At least one specification (.toml OR .json) file is required"
+
+A Shopify-side bug in CLI **3.84.1**, not a problem with this app. It rejects the
+app version server-side *after* the function builds successfully, and the error
+text misleadingly links to sales-channel documentation even for apps that are
+not sales channels. It affects freshly scaffolded apps too, so recreating the
+app does not help.
+
+Fix — upgrade the CLI, do not pin it back:
+
+```bash
+npm install -g @shopify/cli@latest
+shopify app deploy --allow-updates
+```
+
+Note that CLI 4.x removed `--force`. Use `--allow-updates` (or
+`--allow-deletes` / `--no-release`) for non-interactive deploys.
+
+Verified fixed on CLI 4.7.1.
+
 ## The AI Rule Creator is unavailable
 
 - **"Not available right now"** — no provider is configured. Set `AI_PROVIDER`

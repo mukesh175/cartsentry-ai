@@ -82,8 +82,11 @@ The Shopify Function and theme app extension deploy through the Shopify CLI, not
 Vercel:
 
 ```bash
-shopify app deploy
+shopify app deploy --allow-updates
 ```
+
+Requires Shopify CLI 4.x or later. CLI 3.84.1 fails with a misleading
+"At least one specification file is required" error — see TROUBLESHOOTING.md.
 
 This builds `extensions/purchase-rules-validation` to WebAssembly and uploads it
 along with the theme extension and `shopify.app.toml`.
@@ -137,7 +140,7 @@ shopify app dev               # tunnels, injects Shopify credentials, hot reload
 | `npm run db:deploy` | Apply migrations |
 | `npm run db:seed` | Seed development data |
 | `npm run db:studio` | Prisma Studio |
-| `shopify app deploy` | Deploy function + theme extension + config |
+| `shopify app deploy --allow-updates` | Deploy function + theme extension + config |
 
 ## Monitoring
 
