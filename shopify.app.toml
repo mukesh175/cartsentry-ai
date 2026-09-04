@@ -7,7 +7,7 @@
 name = "CartSentry AI"
 handle = "cartsentry-ai"
 client_id = "312e71f75a281c7332d147d06ef1feca"
-application_url = "https://localhost:3000"
+application_url = "https://cartsentry-ai.vercel.app"
 embedded = true
 
 [access_scopes]
@@ -20,9 +20,9 @@ scopes = "read_products,write_products,read_validations,write_validations"
 
 [auth]
 redirect_urls = [
-  "https://localhost:3000/auth/callback",
-  "https://localhost:3000/auth/shopify/callback",
-  "https://localhost:3000/api/auth/callback"
+  "https://cartsentry-ai.vercel.app/auth/callback",
+  "https://cartsentry-ai.vercel.app/auth/shopify/callback",
+  "https://cartsentry-ai.vercel.app/api/auth/callback"
 ]
 
 [webhooks]
@@ -55,7 +55,7 @@ api_version = "2026-07"
 # Serves the storefront warning configuration to the theme app extension.
 # Requests arrive signed by Shopify and are verified before being answered.
 [app_proxy]
-url = "https://localhost:3000/proxy"
+url = "https://cartsentry-ai.vercel.app/proxy"
 subpath = "cartsentry"
 prefix = "apps"
 
