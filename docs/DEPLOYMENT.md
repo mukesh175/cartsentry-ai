@@ -8,14 +8,15 @@ Target: **Vercel** for the app, **Neon** for PostgreSQL.
 2. Copy the **pooled** connection string. Vercel runs serverless functions, so
    the pooled endpoint (`-pooler` in the host) is required — a direct connection
    will exhaust Postgres connections under load.
-3. You need two values:
-   - `DATABASE_URL` — the pooled string, used at runtime
-   - `DIRECT_URL` — the unpooled string, used for migrations
+3. `DATABASE_URL` — the pooled string — is all you strictly need. Migrations
+   apply successfully over the pooler (verified against Neon).
 
-Neon's pooled connections do not support the session-level features Prisma
-Migrate needs, which is why migrations use the direct URL.
+   Optionally also set `DIRECT_URL` to the unpooled string. Neon recommends a
+   direct connection for schema changes because migrations take advisory locks
+   and the pooler can drop long-running sessions. It is a robustness measure for
+   large migrations, not a requirement.
 
-Add to `prisma/schema.prisma` if you use a separate migration connection:
+To use a separate migration connection, add to `prisma/schema.prisma`:
 
 ```prisma
 datasource db {
@@ -50,7 +51,7 @@ Set for **Production** and **Preview**:
 | `SHOPIFY_APP_HANDLE` | `cartsentry-ai` |
 | `SCOPES` | `read_products,write_products,read_validations,write_validations` |
 | `DATABASE_URL` | Neon **pooled** string |
-| `DIRECT_URL` | Neon **direct** string |
+| `DIRECT_URL` | Neon **direct** string. Optional — see step 1. |
 | `NODE_ENV` | `production` |
 | `LOG_LEVEL` | `info` |
 | `AI_PROVIDER` | `gemini`, `anthropic`, `groq`, or `none` |
