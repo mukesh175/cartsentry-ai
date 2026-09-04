@@ -51,7 +51,6 @@ Set for **Production** and **Preview**:
 | `SCOPES` | `read_products,write_products,read_validations,write_validations` |
 | `DATABASE_URL` | Neon **pooled** string |
 | `DIRECT_URL` | Neon **direct** string |
-| `SESSION_SECRET` | `openssl rand -base64 48` |
 | `NODE_ENV` | `production` |
 | `LOG_LEVEL` | `info` |
 | `AI_PROVIDER` | `gemini`, `anthropic`, `groq`, or `none` |

@@ -6,7 +6,7 @@
 
 name = "CartSentry AI"
 handle = "cartsentry-ai"
-client_id = ""
+client_id = "312e71f75a281c7332d147d06ef1feca"
 application_url = "https://localhost:3000"
 embedded = true
 
