@@ -10,7 +10,9 @@
 
 import { describe, expect, it } from "vitest";
 
-import { AIRuleResponseSchema } from "../rule-creator.server";
+// Imported from the pure schema module on purpose: this test must not need a
+// database or a configured environment to run.
+import { AIRuleResponseSchema } from "../schema";
 
 const validRule = {
   kind: "rule",

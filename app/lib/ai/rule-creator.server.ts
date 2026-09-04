@@ -19,7 +19,6 @@ import { z } from "zod";
 
 import prisma from "../../db.server";
 import {
-  RuleDefinitionSchema,
   SUPPORTED_CUSTOMER_TAGS,
   deriveRuleType,
   explainRule,
@@ -30,35 +29,12 @@ import type { TenantContext } from "../tenancy.server";
 import { assertCanUseAI } from "../billing/entitlements.server";
 import { incrementUsage, recordActivity } from "../activity.server";
 import { generate, ProviderError } from "./providers.server";
+import { AIRuleResponseSchema, type AIRuleResponse } from "./schema";
 import { config } from "../config.server";
 
-/**
- * What the model is allowed to return.
- *
- * Two shapes only: a rule, or a request for clarification. There is no free-text
- * escape hatch, which is what makes the output safe to act on.
- */
-export const AIRuleResponseSchema = z.discriminatedUnion("kind", [
-  z.object({
-    kind: z.literal("rule"),
-    name: z.string().min(1).max(120),
-    description: z.string().max(500).default(""),
-    message: z.string().min(1).max(255),
-    priority: z.number().int().min(0).max(100).default(50),
-    definition: RuleDefinitionSchema,
-    /** Anything the model had to assume, surfaced to the merchant for review. */
-    assumptions: z.array(z.string().max(300)).max(6).default([]),
-    confidence: z.enum(["high", "medium", "low"]),
-  }),
-  z.object({
-    kind: z.literal("clarification"),
-    /** The specific ambiguity, phrased as a question the merchant can answer. */
-    question: z.string().min(1).max(400),
-    options: z.array(z.string().max(200)).min(2).max(4),
-  }),
-]);
-
-export type AIRuleResponse = z.infer<typeof AIRuleResponseSchema>;
+// The response contract lives in ./schema, which has no server dependencies so
+// it can be unit-tested without a database or configured environment.
+export { AIRuleResponseSchema, type AIRuleResponse } from "./schema";
 
 export interface AIInterpretation {
   response: AIRuleResponse;
