@@ -1,0 +1,73 @@
+# Input for the CartSentry validation Function.
+#
+# Kept deliberately narrow: every field costs input-parsing budget at runtime,
+# and Functions have a strict instruction limit. Anything not needed by a
+# supported rule type is not requested.
+#
+# Note on collections: `Product.inAnyCollection(ids:)` needs literal collection
+# IDs, and this query is static per deploy, so per-shop collection IDs cannot be
+# injected here. Collection membership is instead resolved when the merchant's
+# rules are compiled and shipped inside the configuration metafield below.
+query CartValidationsGenerateRunInput {
+  # The compiled CartSentry rule configuration for this shop.
+  validation {
+    metafield(namespace: "$app:cartsentry", key: "rules") {
+      value
+    }
+  }
+
+  cart {
+    cost {
+      subtotalAmount {
+        amount
+        currencyCode
+      }
+    }
+
+    buyerIdentity {
+      customer {
+        id
+        numberOfOrders
+        # Tags are requested by name rather than listed, which is the only shape
+        # the Function input supports. The set below is populated at deploy time
+        # from the tags merchants most commonly gate on; see LIMITATIONS.md.
+        hasTags(tags: ["wholesale", "b2b", "vip", "trade", "distributor", "retail", "staff"]) {
+          tag
+          hasTag
+        }
+      }
+    }
+
+    deliveryGroups {
+      deliveryAddress {
+        countryCode
+      }
+    }
+
+    lines {
+      quantity
+      cost {
+        amountPerQuantity {
+          amount
+        }
+      }
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          title
+          product {
+            id
+            title
+          }
+        }
+      }
+    }
+  }
+
+  localization {
+    country {
+      isoCode
+    }
+  }
+}

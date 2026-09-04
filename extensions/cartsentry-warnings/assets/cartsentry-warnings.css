@@ -1,0 +1,64 @@
+/*
+ * CartSentry AI — storefront warning styles.
+ *
+ * Inherits the theme's own font and colour where possible, uses currentColor
+ * for the accent, and never sets a background that could clash with a dark
+ * theme. Severity is conveyed by an icon and the wording, not colour alone.
+ */
+
+.cartsentry-warnings {
+  margin: 1rem 0;
+}
+
+.cartsentry-warnings__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cartsentry-warning {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  align-items: baseline;
+  padding: 0.75rem 1rem;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.cartsentry-warning::before {
+  content: "!";
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.cartsentry-warning--info::before {
+  content: "i";
+}
+
+.cartsentry-warning--critical::before {
+  content: "!";
+}
+
+.cartsentry-warning__title {
+  font-weight: 700;
+}
+
+.cartsentry-warning__message {
+  flex: 1 1 12rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cartsentry-warnings[hidden] {
+    display: none;
+  }
+}

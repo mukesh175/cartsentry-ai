@@ -1,0 +1,11 @@
+# CartSentry AI — theme app extension.
+#
+# Renders early purchase-rule warnings in the cart and on product pages, so a
+# customer learns about a limit before checkout rather than at it.
+#
+# Enforcement does NOT depend on this extension. Rules are enforced server-side
+# by the Cart and Checkout Validation Function; this is only an earlier,
+# friendlier heads-up. A merchant who never installs this block still has every
+# rule enforced.
+name = "CartSentry warnings"
+type = "theme"

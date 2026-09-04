@@ -1,0 +1,378 @@
+// CartSentry AI — data model
+// PostgreSQL. Every merchant-owned table is scoped by `shopId` for multi-tenancy.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Shopify offline/online sessions. Managed by @shopify/shopify-app-session-storage-prisma.
+/// Access tokens live here only; they are never exposed to the browser.
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+
+  @@index([shop])
+}
+
+// ---------------------------------------------------------------------------
+// Tenancy
+// ---------------------------------------------------------------------------
+
+model Shop {
+  id              String    @id @default(cuid())
+  shopDomain      String    @unique
+  name            String?
+  email           String?
+  countryCode     String?
+  currencyCode    String?
+  timezone        String?
+  planDisplayName String?
+  installedAt     DateTime  @default(now())
+  uninstalledAt   DateTime?
+  onboardingStep  Int       @default(0)
+  onboardingDone  Boolean   @default(false)
+  businessType    String?
+  primaryProblem  String?
+  settings        Json      @default("{}")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  subscription           Subscription?
+  rules                  Rule[]
+  simulations            Simulation[]
+  conflicts              Conflict[]
+  activityLogs           ActivityLog[]
+  usageMetrics           UsageMetric[]
+  functionConfigurations FunctionConfiguration[]
+  aiRequests             AIRequest[]
+  notifications          Notification[]
+
+  @@index([uninstalledAt])
+}
+
+// ---------------------------------------------------------------------------
+// Billing
+// ---------------------------------------------------------------------------
+
+enum Plan {
+  FREE
+  STARTER
+  GROWTH
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PENDING
+  CANCELLED
+  EXPIRED
+  DECLINED
+  FROZEN
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  shopId                String             @unique
+  shop                  Shop               @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  plan                  Plan               @default(FREE)
+  status                SubscriptionStatus @default(ACTIVE)
+  shopifySubscriptionId String?            @unique
+  test                  Boolean            @default(false)
+  startedAt             DateTime           @default(now())
+  renewedAt             DateTime?
+  cancelledAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Rules
+// ---------------------------------------------------------------------------
+
+enum RuleStatus {
+  DRAFT
+  ACTIVE
+  DISABLED
+  ARCHIVED
+  ERROR
+  NEEDS_ATTENTION
+}
+
+enum RuleType {
+  PRODUCT_QUANTITY
+  CART_QUANTITY
+  CART_VALUE
+  PRODUCT_COMBINATION
+  REQUIRED_PRODUCT
+  COLLECTION_QUANTITY
+  CUSTOMER
+  MARKET
+  COMPOSITE
+}
+
+model Rule {
+  id          String     @id @default(cuid())
+  shopId      String
+  shop        Shop       @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  type        RuleType
+  status      RuleStatus @default(DRAFT)
+  priority    Int        @default(50)
+
+  /// Normalised CartSentry rule definition (validated by RuleDefinitionSchema).
+  definition    Json
+  /// Customer-facing message shown when the rule blocks a purchase.
+  message       String
+  /// Storefront early-warning configuration (validated by WarningConfigSchema).
+  warningConfig Json   @default("{}")
+
+  /// Set when a referenced product/variant/collection no longer resolves.
+  attentionReason String?
+  lastError       String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archivedAt  DateTime?
+  activatedAt DateTime?
+
+  versions         RuleVersion[]
+  activityLogs     ActivityLog[]
+  conflicts        Conflict[]      @relation("ConflictPrimaryRule")
+  relatedConflicts Conflict[]      @relation("ConflictRelatedRule")
+  dailyStats       RuleDailyStat[]
+
+  @@index([shopId, status])
+  @@index([shopId, type])
+  @@index([shopId, updatedAt])
+}
+
+model RuleVersion {
+  id            String   @id @default(cuid())
+  ruleId        String
+  rule          Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  version       Int
+  configuration Json
+  note          String?
+  createdBy     String?
+  createdAt     DateTime @default(now())
+
+  @@unique([ruleId, version])
+  @@index([ruleId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Simulator
+// ---------------------------------------------------------------------------
+
+model Simulation {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  name      String?
+  scenario  Json
+  result    Json
+  outcome   String
+  createdAt DateTime @default(now())
+
+  @@index([shopId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Conflicts
+// ---------------------------------------------------------------------------
+
+enum ConflictSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum ConflictStatus {
+  OPEN
+  IGNORED
+  RESOLVED
+}
+
+model Conflict {
+  id            String           @id @default(cuid())
+  shopId        String
+  shop          Shop             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  ruleId        String
+  rule          Rule             @relation("ConflictPrimaryRule", fields: [ruleId], references: [id], onDelete: Cascade)
+  relatedRuleId String?
+  relatedRule   Rule?            @relation("ConflictRelatedRule", fields: [relatedRuleId], references: [id], onDelete: Cascade)
+  /// Stable hash of (type + sorted rule ids) so rescans update instead of duplicating.
+  fingerprint   String
+  type          String
+  severity      ConflictSeverity
+  confidence    String
+  explanation   String
+  scenario      Json?
+  suggestedFix  String?
+  status        ConflictStatus   @default(OPEN)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  resolvedAt    DateTime?
+
+  @@unique([shopId, fingerprint])
+  @@index([shopId, status, severity])
+}
+
+// ---------------------------------------------------------------------------
+// Activity / analytics
+// ---------------------------------------------------------------------------
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  ruleId    String?
+  rule      Rule?    @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  eventType String
+  actor     String?
+  summary   String
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([shopId, createdAt])
+  @@index([shopId, eventType])
+}
+
+model UsageMetric {
+  id          String   @id @default(cuid())
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  date        DateTime @db.Date
+  ruleChecks  Int      @default(0)
+  warnings    Int      @default(0)
+  failures    Int      @default(0)
+  blocks      Int      @default(0)
+  simulations Int      @default(0)
+  aiRequests  Int      @default(0)
+
+  @@unique([shopId, date])
+  @@index([shopId, date])
+}
+
+model RuleDailyStat {
+  id       String   @id @default(cuid())
+  ruleId   String
+  rule     Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  date     DateTime @db.Date
+  checks   Int      @default(0)
+  passed   Int      @default(0)
+  failed   Int      @default(0)
+  warnings Int      @default(0)
+  blocks   Int      @default(0)
+
+  @@unique([ruleId, date])
+  @@index([ruleId, date])
+}
+
+// ---------------------------------------------------------------------------
+// Shopify Function configuration
+// ---------------------------------------------------------------------------
+
+enum FunctionConfigStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+  ROLLED_BACK
+}
+
+model FunctionConfiguration {
+  id            String               @id @default(cuid())
+  shopId        String
+  shop          Shop                 @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  version       Int
+  checksum      String
+  configuration Json
+  byteSize      Int                  @default(0)
+  status        FunctionConfigStatus @default(PENDING)
+  /// gid://shopify/Validation/... returned by validationCreate.
+  validationGid String?
+  publishedAt   DateTime?
+  error         String?
+  createdAt     DateTime             @default(now())
+
+  @@unique([shopId, version])
+  @@index([shopId, status])
+}
+
+// ---------------------------------------------------------------------------
+// AI
+// ---------------------------------------------------------------------------
+
+enum AIRequestStatus {
+  SUCCESS
+  INVALID_OUTPUT
+  NEEDS_CLARIFICATION
+  PROVIDER_ERROR
+  RATE_LIMITED
+  TIMEOUT
+}
+
+model AIRequest {
+  id          String          @id @default(cuid())
+  shopId      String
+  shop        Shop            @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  requestType String
+  status      AIRequestStatus
+  provider    String
+  model       String
+  /// Merchant prompt. Treated strictly as untrusted data, never as instructions.
+  prompt      String
+  response    Json?
+  errorCode   String?
+  latencyMs   Int?
+  createdAt   DateTime        @default(now())
+
+  @@index([shopId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id        String    @id @default(cuid())
+  shopId    String
+  shop      Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  type      String
+  severity  String    @default("INFO")
+  title     String
+  body      String
+  actionUrl String?
+  /// Dedupe key so the same standing problem is not re-notified on every scan.
+  dedupeKey String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([shopId, dedupeKey])
+  @@index([shopId, readAt])
+}

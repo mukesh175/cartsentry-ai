@@ -1,0 +1,22 @@
+# CartSentry AI — Cart and Checkout Validation Function.
+#
+# Available on every Shopify plan (Shopify caps a store at 25 validation
+# functions; CartSentry compiles all of a merchant's active rules into this one
+# validation, so it consumes a single slot). See docs/SHOPIFY_CAPABILITIES.md.
+
+api_version = "2026-07"
+
+[[extensions]]
+name = "CartSentry purchase rules"
+handle = "purchase-rules-validation"
+type = "function"
+description = "Enforces the merchant's CartSentry purchase rules in the cart and at checkout."
+
+  [[extensions.targeting]]
+  target = "cart.validations.generate.run"
+  input_query = "src/cart_validations_generate_run.graphql"
+  export = "cart-validations-generate-run"
+
+  [extensions.build]
+  command = "npm run build"
+  path = "dist/function.wasm"

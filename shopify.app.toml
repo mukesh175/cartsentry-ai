@@ -1,0 +1,66 @@
+# CartSentry AI — Shopify app configuration.
+#
+# Run `shopify app config link` to populate client_id and application_url from
+# your Partner Dashboard app, then `shopify app deploy` to push this config,
+# the validation function, and the theme extension.
+
+name = "CartSentry AI"
+handle = "cartsentry-ai"
+client_id = ""
+application_url = "https://localhost:3000"
+embedded = true
+
+[access_scopes]
+# read_products / write_products  — resource pickers and product existence checks
+# read_validations / write_validations — create and update the Cart & Checkout
+#   Validation that enforces the merchant's rules
+# read_customers — not requested: CartSentry never reads customer records. The
+#   validation function evaluates customer tags on Shopify's servers.
+scopes = "read_products,write_products,read_validations,write_validations"
+
+[auth]
+redirect_urls = [
+  "https://localhost:3000/auth/callback",
+  "https://localhost:3000/auth/shopify/callback",
+  "https://localhost:3000/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2026-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  # A deleted product must not leave a rule silently enforcing nothing.
+  [[webhooks.subscriptions]]
+  topics = [ "products/delete", "collections/delete" ]
+  uri = "/webhooks/resources"
+
+  # Collection membership is compiled into the published configuration, so a
+  # membership change needs a republish.
+  [[webhooks.subscriptions]]
+  topics = [ "collections/update" ]
+  uri = "/webhooks/resources"
+
+  # Mandatory privacy webhooks. All three land on one verified endpoint.
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/compliance"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+
+# Serves the storefront warning configuration to the theme app extension.
+# Requests arrive signed by Shopify and are verified before being answered.
+[app_proxy]
+url = "https://localhost:3000/proxy"
+subpath = "cartsentry"
+prefix = "apps"
+
+[pos]
+embedded = false
+
+[build]
+include_config_on_deploy = true

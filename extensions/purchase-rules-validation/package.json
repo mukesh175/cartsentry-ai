@@ -1,0 +1,16 @@
+{
+  "name": "purchase-rules-validation",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "shopify app function build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cartsentry/engine": "*"
+  },
+  "devDependencies": {
+    "@shopify/shopify_function": "^1.0.0"
+  }
+}

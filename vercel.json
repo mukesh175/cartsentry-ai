@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "prisma generate && prisma migrate deploy && react-router build",
+  "installCommand": "npm install",
+  "framework": "react-router",
+  "regions": ["iad1"],
+  "headers": [
+    {
+      "source": "/healthz",
+      "headers": [{ "key": "cache-control", "value": "no-store" }]
+    }
+  ]
+}
