@@ -2,6 +2,12 @@ on: [push, pull_request]
 
 name: CI
 
+# A placeholder connection string. `prisma generate` and `prisma validate`
+# resolve env("DATABASE_URL") and fail without it; neither ever connects, and
+# no step in this workflow talks to a database.
+env:
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+
 jobs:
   CI:
     name: Node ${{ matrix.node }} and ${{ matrix.manager }}
@@ -27,6 +33,12 @@ jobs:
       - name: Install dependencies using ${{ matrix.manager }}
         run: ${{ matrix.manager }} install
 
+      # Must run before typecheck: @prisma/client exports no model types until
+      # the client is generated. npm happens to generate it via postinstall,
+      # pnpm does not, so relying on install order fails under pnpm.
+      - name: Generate Prisma client
+        run: npx prisma generate
+
       - name: Run TypeScript type checking
         if: ${{ !startsWith(github.head_ref || github.ref_name, 'javascript') }}
         run: npx tsc --noEmit
@@ -37,12 +49,8 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Validate Prisma
-        # `prisma validate` resolves env("DATABASE_URL") and fails without it.
-        # This is a syntactic check only — nothing connects to this address.
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
-        run: npx prisma generate && npx prisma validate
+      - name: Validate Prisma schema
+        run: npx prisma validate
 
       - name: Build application
         run: npm run build

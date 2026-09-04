@@ -1,0 +1,9 @@
+# pnpm ignores the "workspaces" field in package.json and needs this file
+# instead. Without it @cartsentry/engine is never linked, so every module that
+# imports the shared rule engine fails to resolve under pnpm.
+#
+# Keep in step with the "workspaces" array in package.json, which npm and yarn
+# both read.
+packages:
+  - 'extensions/*'
+  - 'packages/*'
