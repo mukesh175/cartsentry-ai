@@ -14,9 +14,16 @@ If the simulator had its own copy of the logic, "the simulator said PASS" and
 the module makes them the same claim.
 
 Constraint that keeps this possible: nothing in `packages/engine` imports Node,
-Prisma, or React. `rule-schema.ts` is the only module that pulls in zod, and the
-Function imports it for *types* only — which TypeScript erases — so zod never
-reaches the Function bundle.
+Prisma, or React. `rule-schema.ts` is the only module that pulls in zod.
+
+**The Function must import from the specific engine modules, never the package
+barrel.** `index.ts` re-exports rule-schema's zod schemas as runtime values,
+which esbuild cannot tree-shake, so a barrel import puts ~100kb of zod into the
+Function — measured at 134kb total, 74% of it zod. Importing
+`@cartsentry/engine/evaluate` and `@cartsentry/engine/compile` instead brings the
+bundle to 9.8kb (5.2kb minified) with zod entirely absent, because those modules
+reference rule-schema with `import type` only. The package exposes subpath
+exports for exactly this reason.
 
 ## Flow
 

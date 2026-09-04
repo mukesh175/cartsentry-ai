@@ -63,4 +63,3 @@ prefix = "apps"
 embedded = false
 
 [build]
-include_config_on_deploy = true

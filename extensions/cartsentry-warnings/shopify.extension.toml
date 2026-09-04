@@ -8,4 +8,5 @@
 # friendlier heads-up. A merchant who never installs this block still has every
 # rule enforced.
 name = "CartSentry warnings"
+uid = "5abcb64f-a25b-0430-259f-dfcbaa98a3e66ad95cae"
 type = "theme"

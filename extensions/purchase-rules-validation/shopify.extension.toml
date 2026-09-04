@@ -9,6 +9,7 @@ api_version = "2026-07"
 [[extensions]]
 name = "CartSentry purchase rules"
 handle = "purchase-rules-validation"
+uid = "22fe2c42-d6d8-532c-f6de-eb132bcb6833fd47c4d9"
 type = "function"
 description = "Enforces the merchant's CartSentry purchase rules in the cart and at checkout."
 

@@ -17,11 +17,17 @@
  * the problem to the merchant in the admin instead.
  */
 
-import { evaluate, expand, safeParseConfig } from "@cartsentry/engine";
+// Imported from the specific modules, NOT the package barrel. The barrel
+// re-exports rule-schema's zod schemas as runtime values, which cannot be
+// tree-shaken and would put ~100kb of zod into this Function. evaluate.ts and
+// compile.ts reference rule-schema with `import type` only, so nothing from zod
+// survives compilation here.
+import { evaluate } from "@cartsentry/engine/evaluate";
+import { expand, safeParseConfig } from "@cartsentry/engine/compile";
 
 /**
- * @typedef {import("@cartsentry/engine").EvaluationCart} EvaluationCart
- * @typedef {import("@cartsentry/engine").EvaluationLine} EvaluationLine
+ * @typedef {import("@cartsentry/engine/cart").EvaluationCart} EvaluationCart
+ * @typedef {import("@cartsentry/engine/cart").EvaluationLine} EvaluationLine
  */
 
 /** Where a cart-wide error is attached. */
