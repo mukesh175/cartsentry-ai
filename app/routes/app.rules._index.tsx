@@ -123,6 +123,7 @@ export default function RulesIndex() {
         </s-button>
         <s-section>
           <EmptyState
+            icon="clipboard-checklist"
             heading="No purchase rules yet"
             description="A rule describes when a purchase should be blocked or a customer warned. Start from scratch or pick a template."
           >

@@ -50,12 +50,21 @@ export function OutcomeBadge({ outcome }: { outcome: string }) {
   return <s-badge tone={OUTCOME_TONE[outcome] ?? "neutral"}>{t(`outcome.${outcome}`)}</s-badge>;
 }
 
-/** Standard empty state: a heading, an explanation, and a way forward. */
+/**
+ * Standard empty state: an icon, a heading, an explanation, and a way forward.
+ *
+ * The icon carries no meaning on its own — the heading always says the same
+ * thing in words — so nothing is lost if icons fail to load.
+ */
 export function EmptyState({
+  icon = "shield-check-mark",
+  tone = "info",
   heading,
   description,
   children,
 }: {
+  icon?: string;
+  tone?: Tone;
   heading: string;
   description: string;
   children?: ReactNode;
@@ -63,13 +72,51 @@ export function EmptyState({
   return (
     <s-box padding="large-500">
       <s-stack direction="block" gap="base" alignItems="center">
+        <s-box
+          padding="base"
+          borderRadius="large"
+          background="subdued"
+          inlineSize="auto"
+        >
+          <s-icon type={icon as never} tone={tone} />
+        </s-box>
         <s-heading>{heading}</s-heading>
         <s-paragraph>{description}</s-paragraph>
         {children ? (
-          <s-stack direction="inline" gap="base">
+          <s-stack direction="inline" gap="base" alignItems="center">
             {children}
           </s-stack>
         ) : null}
+      </s-stack>
+    </s-box>
+  );
+}
+
+/**
+ * A numbered step in an explanatory sequence — used to show a new merchant the
+ * shape of the product before they have any data to look at.
+ */
+export function StepCard({
+  step,
+  icon,
+  title,
+  description,
+}: {
+  step: number;
+  icon: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <s-box padding="base" borderWidth="base" borderRadius="base" background="subdued">
+      <s-stack direction="block" gap="small-400">
+        <s-stack direction="inline" gap="small-300" alignItems="center">
+          <s-icon type={icon as never} tone="info" />
+          <s-text type="strong">
+            {step}. {title}
+          </s-text>
+        </s-stack>
+        <s-text color="subdued">{description}</s-text>
       </s-stack>
     </s-box>
   );

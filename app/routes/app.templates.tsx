@@ -45,7 +45,10 @@ export default function Templates() {
           {ordered.map((template) => (
             <s-box key={template.id} padding="base" borderWidth="base" borderRadius="base">
               <s-stack direction="block" gap="small-300">
-                <s-text type="strong">{template.title}</s-text>
+                <s-stack direction="inline" gap="small-400" alignItems="center">
+                  <s-icon type="wand" tone="info" size="small" />
+                  <s-text type="strong">{template.title}</s-text>
+                </s-stack>
                 <s-text color="subdued">{template.summary}</s-text>
 
                 {template.requiresProduct > 0 || template.requiresCollection > 0 ? (

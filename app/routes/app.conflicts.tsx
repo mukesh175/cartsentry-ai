@@ -119,6 +119,8 @@ export default function Conflicts() {
       {open.length === 0 ? (
         <s-section>
           <EmptyState
+            icon="check-circle"
+            tone="success"
             heading="No conflicts found"
             description="Your rules can all be satisfied together. We rescan every time you open this page."
           >

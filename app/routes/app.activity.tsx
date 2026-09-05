@@ -44,6 +44,7 @@ export default function Activity() {
       <s-page heading="Activity">
         <s-section>
           <EmptyState
+            icon="clock"
             heading="Nothing logged yet"
             description="Every rule change, simulation, conflict and publish is recorded here."
           >
